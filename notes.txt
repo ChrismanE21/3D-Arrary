@@ -1,0 +1,8 @@
+synchronous updating
+
+
+a = [[3,2,3]]
+a[0,1] => 2
+
+print(allLayers.size())
+allLayers[:,:,0] or allLayers[0,:,:]

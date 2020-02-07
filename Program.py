@@ -22,7 +22,7 @@ def showCA(ca, wait=0,title="image"):
 
     out[ca == alive] = aliveColor
     out[ca == dead] = deadColor
-    show(out, wait = wait,title=title)
+    show(out, wait = wait, title = title)
 
 #This loads in the picture and idenfies what it shows
 def load(filename):
@@ -71,12 +71,6 @@ while True:
 	town2  = iterate (town2,town,town3)
 	showCA(town3,1000//fps,title="3")
 	town3  = iterate (town3,town,town2)
-	
-    
-
-#//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 	

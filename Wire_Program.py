@@ -1,147 +1,164 @@
 import cv2
 import numpy as np
 
+#Wire World
 wireColor=(128,128,128)
 notWireColor=(0,0,0)
 electronColor=(0,255,255)
 tailColor=(0,128,255)
-
 wire=1
 notWire=0
 electron=3
 tail=2
 
+#Game of Life
+aliveColor = (0,255,255)
+deadColor = (0)
+alive = 1
+dead = 0
 
-def show(img, title="image", wait=30):
-    d=np.max(img.shape)
-    h,w=img.shape[:2]
-    unitSize=120//d
+
+def show(img, wait = 30, title = "image"):#Shows the picture
+    d = np.max(img.shape)
+    h, w = img.shape[:2]
+    unitSize = 500//d
     resized = cv2.resize(np.uint8(img), (unitSize*w,unitSize*h), interpolation = cv2.INTER_AREA)
     cv2.imshow(title, resized)
-    cv2.waitKey(wait) # 0 means wait for key input. postive value waits for that many milliseconds
+    cv2.waitKey(wait)  # 0 means wait for key input. postive value waits for that many milliseconds
     
-def showCA(ca, wait=0):
-    h,w = ca.shape[:2]
-    out = np.zeros((h,w,3))
+def showWireWorld(allLayers, wait = 0 , title = "image"):#Paints the picture for Wire World
+	number_of_layers = len(allLayers)
 
-    out[ca==wire]=wireColor
-    out[ca==notWire]=notWireColor
-    out[ca==electron]=electronColor
-    out[ca==tail]=tailColor
-    show(out, wait=wait)
-    
-def load(filename):
-    img=cv2.imread(filename)
-    h,w = img.shape[:2]
-    out = np.zeros((h,w))
-    out[img[:,:,1]<100]=notWire
-    out[img[:,:,1]>150]=electron
-    out[np.logical_and(img[:,:,1]<150,img[:,:,2]>150)]=tail
-    out[np.logical_and(img[:,:,1]<150,img[:,:,0]>100)]=wire
-    return out
-    
-    
+	for x in range(number_of_layers):
+		
+		name = str(x)
+		
+		h,w = allLayers[x].shape[:2]
+		out = np.zeros((h,w,3))
 
-def iterate(world):
-    newWorld=world*1
-    kernel=np.int16([[1,1,1],
-                     [1,0,1],
-                     [1,1,1]])
-    whereTheElectronsAre=np.int16(world==electron)
-    neighborCount=cv2.filter2D(whereTheElectronsAre,-1,kernel,borderType=cv2.BORDER_CONSTANT)
-    newWorld[world==notWire]=notWire
-    newWorld[world==electron]=tail
-    newWorld[world==tail]=wire
-    newWorld[world==wire]=wire
-    newWorld[np.logical_and(np.logical_and(world==wire,1<=neighborCount),neighborCount<=2)]=electron
-    return newWorld
-
-
-
-world=np.array([[0,0,0,0,0],
-                [0,0,0,0,0],
-                [1,1,1,3,0],
-                [0,0,0,0,1],
-                [0,0,0,0,1]])
-
-import cv2
-import numpy as np
-
-wireColor=(128,128,128)
-notWireColor=(0,0,0)
-electronColor=(0,255,255)
-tailColor=(0,128,255)
-
-wire=1
-notWire=0
-electron=3
-tail=2
-
-
-def show(img, title="image", wait=30):
-    d=np.max(img.shape)
-    h,w=img.shape[:2]
-    unitSize=1200//d
-    resized = cv2.resize(np.uint8(img), (unitSize*w,unitSize*h), interpolation = cv2.INTER_AREA)
-    cv2.imshow(title, resized)
-    cv2.waitKey(wait) # 0 means wait for key input. postive value waits for that many milliseconds
-    
-def showCA(ca, wait=0,title = "image"):
-    h,w = ca.shape[:2]
-    out = np.zeros((h,w,3))
-
-    out[ca==wire]=wireColor
-    out[ca==notWire]=notWireColor
-    out[ca==electron]=electronColor
-    out[ca==tail]=tailColor
-    show(out, wait = wait,title=title)
-    
-def load(filename):
-    img=cv2.imread(filename)
-    h,w = img.shape[:2]
-    out = np.zeros((h,w))
-    out[img[:,:,1]<100]=notWire
-    out[img[:,:,1]>150]=electron
-    out[np.logical_and(img[:,:,1]<150,img[:,:,2]>150)]=tail
-    out[np.logical_and(img[:,:,1]<150,img[:,:,0]>100)]=wire
-    return out
-    
-    
-
-def iterate(layerOne,layerTwo,layerThree):
-    newWorld=layerOne*1
-    
-    kernel_1 = np.int16([[1,1,1],[1,0,1],[1,1,1]])
-    kernel_2 = np.int16([[0,0,0],[0,1,0],[0,0,0]])
-    kernel_3 = np.int16([[0,0,0],[0,1,0],[0,0,0]])
-    
-    lifeCheckOne = np.int16(layerOne == electron)
-    lifeCheckTwo = np.int16(layerTwo == electron)
-    lifeCheckThree = np.int16(layerThree == electron)
+		out[allLayers[x]==wire]=wireColor
+		out[allLayers[x]==notWire]=notWireColor
+		out[allLayers[x]==electron]=electronColor
+		out[allLayers[x]==tail]=tailColor
+		
+		show(out, wait = wait ,title = name)
+		
+def showGameOfLife(allLayers, wait = 0, title = "image"):#Paints the picture for Conway's Game of Life
+	number_of_layers = len(allLayers)
 	
-    neighborCount = cv2.filter2D(lifeCheckOne,-1,kernel_1,borderType=cv2.BORDER_CONSTANT,)
-    neighborCount = neighborCount + cv2.filter2D(lifeCheckTwo,-1,kernel_2,borderType = cv2.BORDER_CONSTANT,)
-    neighborCount = neighborCount + cv2.filter2D(lifeCheckThree,-1,kernel_3,borderType = cv2.BORDER_CONSTANT,)
-    
-    newWorld[layerOne==notWire]=notWire
-    newWorld[layerOne==electron]=tail
-    newWorld[layerOne==tail]=wire
-    newWorld[layerOne==wire]=wire
-    newWorld[np.logical_and(np.logical_and(layerOne==wire,1<=neighborCount),neighborCount<=2)]=electron
-    return newWorld
+	for x in range(number_of_layers):
+		
+		name = str(x)
+		
+		h,w = allLayers[x].shape[:2]
+		out = np.zeros((h,w,3))
+		
+		out[allLayers[x] == dead] = deadColor
+		out[allLayers[x] == alive] = aliveColor
+		
+		show(out, wait = wait, title = name)
+		
+def loadWireWorld(filename):#Extracts a picture from a file
+    img=cv2.imread(filename)
+    h,w = img.shape[:2]
+    out = np.zeros((h,w))
+    out[img[:,:,1]<100]=notWire
+    out[img[:,:,1]>150]=electron
+    out[np.logical_and(img[:,:,1]<150,img[:,:,2]>150)]=tail
+    out[np.logical_and(img[:,:,1]<150,img[:,:,0]>100)]=wire
+    return out
 
-world=load("image4.png")
-world2=load("image5.png")
-world3=load("image6.png")
-
-fps = 1000
-
-while True:
-    showCA(world,1000//fps,title="1")
-    world=iterate(world,world2,world3)
+def iterateWireWorld(allLayers):#Appiyes the rules for Wrie World
+	newLayers = allLayers.copy()
     
-    showCA(world2,1000//fps,title="2")
-    world2=iterate(world2,world3,world)
+	kernel_current = np.int16([[1,1,1],[1,0,1],[1,1,1]])
+	kernel_near = np.int16([[0,0,0],[0,1,0],[0,0,0]])
     
-    showCA(world3,1000//fps,title="3")
-    world3=iterate(world3,world,world2)
+	for x in range(number_of_layers):
+		
+		#This set up avoids an index error with lifeCheckThree
+		if(x != number_of_layers - 1):
+			lifeCheckOne = np.int16(allLayers[x] == electron)
+			lifeCheckTwo = np.int16(allLayers[x-1] == electron)
+			lifeCheckThree = np.int16(allLayers[x+1] == electron)
+		else:
+			lifeCheckOne = np.int16(allLayers[x] == electron)
+			lifeCheckTwo = np.int16(allLayers[x-1] == electron)
+			lifeCheckThree = np.int16(allLayers[x-number_of_layers+1] == electron)
+	
+		neighborCount = cv2.filter2D(lifeCheckOne,-1,kernel_current,borderType=cv2.BORDER_CONSTANT,)
+		neighborCount = neighborCount + cv2.filter2D(lifeCheckTwo,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
+		neighborCount = neighborCount + cv2.filter2D(lifeCheckThree,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
+		
+		newLayers[x][allLayers[x] == notWire]= notWire
+		newLayers[x][allLayers[x] == electron]= tail
+		newLayers[x][allLayers[x] == tail]= wire
+		newLayers[x][allLayers[x] == wire]= wire
+		newLayers[x][np.logical_and(np.logical_and(allLayers[x] == wire,1<=neighborCount),neighborCount<=2)]=electron
+    
+	return newLayers
+
+def iterateGameOfLife(allLayers):
+	newLayers = allLayers.copy() * 1 #creats a copy
+	
+	kernel_current = np.int16([[0 ,1 ,0], [1, 0, 1], [0, 1, 0]])
+	kernel_near = np.int16([[0 ,0 ,0], [0, 1, 0], [0, 0, 0]])
+	
+	for x in range(number_of_layers):
+	
+		if(x != number_of_layers - 1):
+			lifeCheckOne = np.int16(allLayers[x] == alive)
+			lifeCheckTwo = np.int16(allLayers[x-1] == alive)
+			lifeCheckThree = np.int16(allLayers[x+1] == alive)
+		else:
+			lifeCheckOne = np.int16(allLayers[x] == alive)
+			lifeCheckTwo = np.int16(allLayers[x-1] == alive)
+			lifeCheckThree = np.int16(allLayers[x-number_of_layers+1] == electron)
+
+		neighborCount = cv2.filter2D(lifeCheckOne,-1,kernel_current,borderType=cv2.BORDER_CONSTANT,)
+		neighborCount = neighborCount + cv2.filter2D(lifeCheckTwo,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
+		neighborCount = neighborCount + cv2.filter2D(lifeCheckThree,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
+
+		newLayers[x][np.logical_and(allLayers[x] == alive, 2 > neighborCount)] = dead #under population
+		newLayers[x][np.logical_and(allLayers[x] == alive, 5 < neighborCount)] = dead #over population
+		newLayers[x][np.logical_and(allLayers[x] == dead, 3 == neighborCount)] = alive #revive
+		
+	return newLayers
+#//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+allLayers = [] #list of pictures
+listNames = []
+doneTypeing = 0
+number_of_layers = 0
+
+fps = 1000 #speed
+
+print("Type rule set to contuine.\nGame of Life\nWire World\n")
+
+rules = input(" ")
+
+print("Good, next enter the files names with their extenstions")		
+		
+
+while doneTypeing == 0:#user types file names and the picture is turn into a arrary; which is put into a arrary of arraries allLayers
+	world = input(" ")
+	
+	if world != "END": 
+
+		listNames.append(world)
+		world = load("" +world+ "")
+		allLayers.append(world)
+		
+	else:
+		doneTypeing = 1
+	
+	number_of_layers = len(allLayers)
+
+while rules == "Game of Life":
+		showGameOfLife(allLayers,1000//fps, number_of_layers)
+		allLayers = iterateGameOfLife (allLayers)
+
+while rules == "Wire World":
+		showWireWorld(allLayers,1000//fps, number_of_layers)
+		allLayers = iterateWireWorld (allLayers)
+#third dem. celluar automata
