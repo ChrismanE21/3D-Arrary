@@ -1,3 +1,5 @@
+#Three Dimensional Cellular Automata Motifs
+
 import cv2
 import numpy as np
 
@@ -12,8 +14,8 @@ electron=3
 tail=2
 
 #Game of Life
-aliveColor = (0,255,255)
-deadColor = (0)
+aliveColor = (200,200,200)
+deadColor = (255,255,255)
 alive = 1
 dead = 0
 
@@ -67,6 +69,14 @@ def loadWireWorld(filename):#Extracts a picture from a file
     out[np.logical_and(img[:,:,1]<150,img[:,:,2]>150)]=tail
     out[np.logical_and(img[:,:,1]<150,img[:,:,0]>100)]=wire
     return out
+    
+def loadGameofLife(filename):
+	img=cv2.imread(filename)
+	h,w = img.shape[:2]
+	out = np.zeros((h,w))
+	out[img[:, :, 1]<100] = alive
+	out[img[:, :, 1]>=150] = dead
+	return out
 
 def iterateWireWorld(allLayers):#Appiyes the rules for Wrie World
 	newLayers = allLayers.copy()
@@ -101,8 +111,8 @@ def iterateWireWorld(allLayers):#Appiyes the rules for Wrie World
 def iterateGameOfLife(allLayers):
 	newLayers = allLayers.copy() * 1 #creats a copy
 	
-	kernel_current = np.int16([[0 ,1 ,0], [1, 0, 1], [0, 1, 0]])
-	kernel_near = np.int16([[0 ,0 ,0], [0, 1, 0], [0, 0, 0]])
+	kernel_current = np.int16([[1 ,1 ,1], [1, 0, 1], [1, 1, 1]])
+	kernel_near = np.int16([[1 ,1 ,1], [1, 1, 1], [1, 1, 1]])#How gets counted as a person
 	
 	for x in range(number_of_layers):
 	
@@ -113,15 +123,15 @@ def iterateGameOfLife(allLayers):
 		else:
 			lifeCheckOne = np.int16(allLayers[x] == alive)
 			lifeCheckTwo = np.int16(allLayers[x-1] == alive)
-			lifeCheckThree = np.int16(allLayers[x-number_of_layers+1] == electron)
+			lifeCheckThree = np.int16(allLayers[x-number_of_layers+1] == alive)
 
 		neighborCount = cv2.filter2D(lifeCheckOne,-1,kernel_current,borderType=cv2.BORDER_CONSTANT,)
 		neighborCount = neighborCount + cv2.filter2D(lifeCheckTwo,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
 		neighborCount = neighborCount + cv2.filter2D(lifeCheckThree,-1,kernel_near,borderType = cv2.BORDER_CONSTANT,)
 
-		newLayers[x][np.logical_and(allLayers[x] == alive, 2 > neighborCount)] = dead #under population
-		newLayers[x][np.logical_and(allLayers[x] == alive, 5 < neighborCount)] = dead #over population
-		newLayers[x][np.logical_and(allLayers[x] == dead, 3 == neighborCount)] = alive #revive
+		newLayers[x][np.logical_and(allLayers[x] == alive, 7 > neighborCount)] = dead #under population
+		newLayers[x][np.logical_and(allLayers[x] == alive, 12 < neighborCount)] = dead #over population
+		newLayers[x][np.logical_and(allLayers[x] == dead, np.logical_and(neighborCount >= 7, neighborCount <= 12))] = alive #revive
 		
 	return newLayers
 #//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,34 +141,49 @@ listNames = []
 doneTypeing = 0
 number_of_layers = 0
 
-fps = 1000 #speed
+fps = 40 #speed
 
+correct = 0
 print("Type rule set to contuine.\nGame of Life\nWire World\n")
 
-rules = input(" ")
+while (correct == 0):
+	rules = input(" ")
+	if (rules != "Game of Life" and rules != "Wire World"):
+		print("Sorry! Your choice may have a typo.")
+	else:
+		correct = 1
 
 print("Good, next enter the files names with their extenstions")		
-		
 
-while doneTypeing == 0:#user types file names and the picture is turn into a arrary; which is put into a arrary of arraries allLayers
-	world = input(" ")
+while rules == "Game of Life":#Game of Life Game
+	while doneTypeing == 0:#user types file names and the picture is turn into a arrary; which is put into a arrary of arraries allLayers
+		world = input(" ")
 	
-	if world != "END": 
-
-		listNames.append(world)
-		world = load("" +world+ "")
-		allLayers.append(world)
-		
-	else:
-		doneTypeing = 1
+		if world != "END": 
+			listNames.append(world)
+			world = loadGameofLife("" +world+ "")
+			allLayers.append(world)
+		else:
+			doneTypeing = 1
 	
 	number_of_layers = len(allLayers)
+	
+	showGameOfLife(allLayers,1000//fps, number_of_layers)
+	allLayers = iterateGameOfLife (allLayers)
 
-while rules == "Game of Life":
-		showGameOfLife(allLayers,1000//fps, number_of_layers)
-		allLayers = iterateGameOfLife (allLayers)
-
-while rules == "Wire World":
-		showWireWorld(allLayers,1000//fps, number_of_layers)
-		allLayers = iterateWireWorld (allLayers)
+while rules == "Wire World":#Wire World Game
+	while doneTypeing == 0:#user types file names and the picture is turn into a arrary; which is put into a arrary of arraries allLayers
+		world = input(" ")
+	
+		if world != "END":
+			listNames.append(world)
+			world = loadWireWorld("" +world+ "")
+			allLayers.append(world)
+		else:
+			doneTypeing = 1
+	
+	number_of_layers = len(allLayers)
+	
+	showWireWorld(allLayers,1000//fps, number_of_layers)
+	allLayers = iterateWireWorld (allLayers)
 #third dem. celluar automata
